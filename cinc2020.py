@@ -1,9 +1,10 @@
-# %%
-import numpy as np, os
-import pandas as pd
 import pickle
-from scipy.io import loadmat
 from pathlib import Path
+
+import numpy as np
+import os
+import pandas as pd
+from scipy.io import loadmat
 from tqdm import tqdm
 
 
@@ -20,11 +21,10 @@ def load_challenge_data(filename):
     return data, header_data
 
 
-# %%
 cinc_all_files = [el.as_posix() for el in Path('ecg_data/cinc2020').glob('**/*.*')]
 cinc_all_files.sort()
 assert len(cinc_all_files) == 86208
-# %%
+
 ecg_data, ecg_header, file_names = [], [], []
 for el in cinc_all_files:
     if not el.endswith('hea') and not el.endswith('mat') and not el.endswith('gz'):
@@ -48,7 +48,7 @@ for el in ecg_header:
     )
 assert set(freq) == {1000, 257, 500}
 assert len(ecg_data) == 43101
-# %%
+
 wave_second = []
 raw_wave_length = []
 for el1, el2 in zip(ecg_data, freq):
@@ -58,12 +58,12 @@ for el1, el2 in zip(ecg_data, freq):
     raw_wave_length.append(wave_length)
 wave_second = np.asarray(wave_second)
 raw_wave_length = np.asarray(raw_wave_length)
-# %%
+
 for idx, el in tqdm(enumerate(ecg_data)):
     tmp = el.astype(np.int)
     assert np.all(tmp == el)
     ecg_data[idx] = tmp
-# %%
+
 all_data_num = 0
 offsets = []
 shapes = []
@@ -74,7 +74,8 @@ for el in tqdm(ecg_data):
     all_data_num += (tmp_shape[0] * tmp_shape[1])
 shapes = np.asarray(shapes)
 offsets = np.asarray(offsets)
-# %%
+
+# Save wave file
 fp = np.memmap('cinc2020.npy', np.int, mode='w+', shape=(all_data_num,))
 
 for el1, el2 in tqdm(zip(ecg_data, offsets)):
@@ -86,7 +87,6 @@ assert np.copy(fp[:2]).itemsize == 8
 raw_header = np.asarray([pickle.dumps(el) for el in tqdm(ecg_header)])
 
 
-# %%
 def extract_features(inputs):
     found = False
     age = None
@@ -133,7 +133,7 @@ def extract_features(inputs):
     return dx_row_list, sex, age
 
 
-# %%
+# Extract features
 df = pd.DataFrame()
 df['offsets'] = offsets
 df['shapes'] = [tuple(el) for el in shapes]
@@ -143,7 +143,6 @@ df['wave_second'] = wave_second
 df['raw_wave_length'] = raw_wave_length
 df['raw_header'] = raw_header
 
-# %%
 features = [extract_features(el) for el in ecg_header]
 dx_map = pd.read_csv('Dx_map.csv')
 dx_map_function = {k: v for k, v in zip(dx_map['SNOMED CT Code'], dx_map['Abbreviation'])}
@@ -153,7 +152,7 @@ age = [el[2] for el in features]
 
 df['sex'] = sex
 df['age'] = age
-# %%
+
 dx_all = []
 [dx_all.extend(el) for el in dx]
 dx_all = list(set(dx_all))
@@ -162,13 +161,11 @@ df_dx = pd.DataFrame(columns=dx_all)
 for el in tqdm(dx_all):
     col = [True if el in el2 else False for el2 in dx]
     df_dx[el] = col
-# %%
+
 df_final = pd.concat([df, df_dx], axis=1)
-# %%
 df_final.to_pickle('cinc2020_meta_info.pkl')
 
 
-# %%
 ####################################################################################################
 def cinc2020_loader(file_path: str, idx: int, meta_df: pd.DataFrame):
     fp2 = np.memmap(file_path, np.int, mode='r', shape=tuple(meta_df['shapes'][idx]),
@@ -176,7 +173,6 @@ def cinc2020_loader(file_path: str, idx: int, meta_df: pd.DataFrame):
     return np.copy(fp2)
 
 ####################################################################################################
-# %%
 # meta_df = pd.read_pickle('cinc2020_meta_info.pkl')
 # for i in tqdm(range(len(ecg_data))):
 #     A = cinc2020_loader('cinc2020.npy', i, meta_df)

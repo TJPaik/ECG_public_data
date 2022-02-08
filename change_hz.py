@@ -1,10 +1,7 @@
-# %%
 # To 500HZ
-# %%
-from tqdm import tqdm
-from scipy.fft import dct, idct
 import numpy as np
 import pandas as pd
+from scipy.fft import dct, idct
 
 
 def normalize(wave: np.array, wanted_std: float):
