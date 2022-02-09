@@ -60,7 +60,7 @@ wave_second = np.asarray(wave_second)
 raw_wave_length = np.asarray(raw_wave_length)
 
 for idx, el in tqdm(enumerate(ecg_data)):
-    tmp = el.astype(np.int)
+    tmp = el.astype(np.int32)
     assert np.all(tmp == el)
     ecg_data[idx] = tmp
 
@@ -76,13 +76,13 @@ shapes = np.asarray(shapes)
 offsets = np.asarray(offsets)
 
 # Save wave file
-fp = np.memmap('cinc2020.npy', np.int, mode='w+', shape=(all_data_num,))
+fp = np.memmap('cinc2020.npy', np.int32, mode='w+', shape=(all_data_num,))
 
 for el1, el2 in tqdm(zip(ecg_data, offsets)):
     tmp_data = el1.flatten()
     fp[el2:el2 + len(tmp_data)] = tmp_data
 fp.flush()
-assert np.copy(fp[:2]).itemsize == 8
+assert np.copy(fp[:2]).itemsize == 4
 
 raw_header = np.asarray([pickle.dumps(el) for el in tqdm(ecg_header)])
 
@@ -168,8 +168,8 @@ df_final.to_pickle('cinc2020_meta_info.pkl')
 
 ####################################################################################################
 def cinc2020_loader(file_path: str, idx: int, meta_df: pd.DataFrame):
-    fp2 = np.memmap(file_path, np.int, mode='r', shape=tuple(meta_df['shapes'][idx]),
-                    offset=8 * meta_df['offsets'][idx])
+    fp2 = np.memmap(file_path, np.int32, mode='r', shape=tuple(meta_df['shapes'][idx]),
+                    offset=4 * meta_df['offsets'][idx])
     return np.copy(fp2)
 
 ####################################################################################################

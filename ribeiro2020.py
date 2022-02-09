@@ -83,7 +83,6 @@ def ribeiro2020_train_loader(file_path: str, idx: int, meta_df: pd.DataFrame):
 
 
 ####################################################################################################
-
 # meta_df = pd.read_pickle('ribeiro2020_train_meta_info.pkl')
 # for i, el in tqdm(enumerate(all_ecg_valid)):
 #     A = ribeiro2020_train_loader('ribeiro2020_train.npy', i, meta_df)
@@ -91,6 +90,7 @@ def ribeiro2020_train_loader(file_path: str, idx: int, meta_df: pd.DataFrame):
 
 ########################################################
 ########################################################
+# %%
 ########################################################
 ########################################################
 
